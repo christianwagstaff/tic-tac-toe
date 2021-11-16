@@ -12,7 +12,7 @@ let GameBoard = (function() {
     }
 
     let player1 = new Player();
-    player1.name = 'Player 1'
+    player1.name = 'You'
     player1.icon = 'x'
 
     let player2 = new Player();
@@ -26,7 +26,19 @@ let GameBoard = (function() {
     //cache DOM
     let gameBoard = document.querySelector('#gameBoard');
     let player1Display = document.querySelector('#player1');
-    let player2Display = document.querySelector('#player2')
+    let player2Display = document.querySelector('#player2');
+    let player1Name = player1Display.querySelector('.name');
+    let player2Name = player2Display.querySelector('.name');
+    let player1Score = player1Display.querySelector('.score');
+    let player2Score = player2Display.querySelector('.score');
+
+
+    //initialize Game when Loaded
+    function init() {
+        player1Name.textContent = player1.name;
+        player2Name.textContent = player2.name;
+        render();
+    }
 
     //add eventListeners
     gameBoard.addEventListener('click', addPiece);
@@ -65,11 +77,11 @@ let GameBoard = (function() {
     //toggle currentPlayer CSS class
     function currentPlayerCSS() {
         if (getCurrentPlayer(count) === player1) {
-            player1Display.classList.add('currentPlayer');
-            player2Display.classList.remove('currentPlayer');
+            player1Name.classList.add('currentPlayer');
+            player2Name.classList.remove('currentPlayer');
         } else {
-            player2Display.classList.add('currentPlayer');
-            player1Display.classList.remove('currentPlayer');
+            player2Name.classList.add('currentPlayer');
+            player1Name.classList.remove('currentPlayer');
         }
     }
 
@@ -115,19 +127,32 @@ let GameBoard = (function() {
     function checkForWin() {
         for (option of winningPositions) {
             if (areEqual(option)) {
-                let currentPlayer = getCurrentPlayer(count - 1);
-                alert(`Game Over ${currentPlayer.name} wins!`);
-                resetGame();
+                win();
             }
         }
     }
 
-    function resetGame() {
+    function win() {
+        let currentPlayer = getCurrentPlayer(count - 1);
+        alert(`Game Over ${currentPlayer.name} wins!`);
+        currentPlayer.wins += 1;
+        console.log(currentPlayer.wins)
+        displayCurrentWins();
+        resetBoard();
+    }
+
+    function displayCurrentWins(){
+        player1Score.textContent = player1.wins;
+        player2Score.textContent = player2.wins;
+    }
+
+    function resetBoard() {
         gameBoardArray = Array(9).fill('');
         count = 0;
         render();
     }
 
+    //check all winning combinations to see if there is 3 in a row
     function areEqual(array) {
         let argument1 = gameBoardArray[array[0]];
         let argument2 = gameBoardArray[array[1]];
@@ -139,7 +164,7 @@ let GameBoard = (function() {
     }
 
     //initalize
-    render();
+    init();
 
     return {
         addPiece: addPiece,

@@ -57,4 +57,14 @@ body {
 .player {
     align-self: flex-start;
     padding: 12px;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.name {
+    width: 100%;
+    text-align: center;
 }
