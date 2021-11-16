@@ -1,3 +1,8 @@
+h2 {
+    padding: 0;
+    margin: 0;
+}
+
 body {
     display: flex;
     flex-direction: column;
@@ -34,4 +39,22 @@ body {
 #grid1, #grid7 {
     border-top: none;
     border-bottom: none;
+}
+
+.main {
+    display: flex;
+    gap: 24px;
+}
+
+.currentPlayer {
+    box-shadow: 0px 0px 5px red;
+}
+
+.rounded {
+    border-radius: 0.5rem;
+}
+
+.player {
+    align-self: flex-start;
+    padding: 12px;
 }
