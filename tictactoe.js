@@ -4,6 +4,7 @@ let GameBoard = (function() {
     //                      top,     left,    right,    bottom, diag1,   diag2    mid-col  mid-row
     let winningPositions = [[0,1,2], [0,3,6], [2,5,8], [6,7,8], [0,4,8], [2,4,6], [1,4,7], [3,4,5]];
     let count = 0;
+    let disablePlay = false;
 
     //create players with unique icons
     function Player() {
@@ -12,12 +13,13 @@ let GameBoard = (function() {
     }
 
     let player1 = new Player();
-    player1.name = 'You'
+    player1.name = 'Player 1'
     player1.icon = 'x'
 
     let player2 = new Player();
-    player2.name = 'Player 2';
+    player2.name = 'Computer';
     player2.icon = 'o';
+    player2.computer = true;
 
     function getCurrentPlayer(count) {
         return count % 2 === 0 ? player1 : player2;
@@ -32,13 +34,12 @@ let GameBoard = (function() {
     let player1Score = player1Display.querySelector('.score');
     let player2Score = player2Display.querySelector('.score');
 
-
     //initialize Game when Loaded
-    function init() {
+    (function init() {
         player1Name.textContent = player1.name;
         player2Name.textContent = player2.name;
         render();
-    }
+    })();
 
     //add eventListeners
     gameBoard.addEventListener('click', addPiece);
@@ -85,7 +86,6 @@ let GameBoard = (function() {
         }
     }
 
-
     //allows grid pieces to be dymanically added with event listeners
     function eventDelegation(event, nodeType, className) {
         //attaching eventListeners to the main books div, checks if target is what we want
@@ -111,6 +111,7 @@ let GameBoard = (function() {
     }
 
     function addPiece(e) {
+        if (disablePlay) return;
         if (eventDelegation(e, 'DIV', 'grid')) {
             let parentCard = e.target;
             let gridID = parentCard.dataset.id;
@@ -120,15 +121,23 @@ let GameBoard = (function() {
         } else {
             return;
         }
-        render();
         checkForWin();
+        render();
+        if (checkForComputer()) {
+            computerPlay();
+        };
     }
 
     function checkForWin() {
         for (option of winningPositions) {
             if (areEqual(option)) {
                 win();
+                return;
             }
+        }
+        if (!gameBoardArray.includes('')) {
+            alert('Tie!')
+            resetBoard();
         }
     }
 
@@ -136,9 +145,31 @@ let GameBoard = (function() {
         let currentPlayer = getCurrentPlayer(count - 1);
         alert(`Game Over ${currentPlayer.name} wins!`);
         currentPlayer.wins += 1;
-        console.log(currentPlayer.wins)
         displayCurrentWins();
         resetBoard();
+    }
+
+    function checkForComputer() {
+        if (gameBoardArray.includes('') && getCurrentPlayer(count).computer) {
+            return true;
+        }
+    }
+
+    function computerPlay() {
+        disablePlay = true;
+        setTimeout(function(){
+            disablePlay = false;
+            let location = findEmptySpace();
+            addPiece(location);
+        }, 500) //delay computer
+    }
+
+    function findEmptySpace() {
+        let location = Math.floor(Math.random() * gameBoardArray.length);
+        while (gameBoardArray[location] !== '') {
+            location = Math.floor(Math.random() * gameBoardArray.length);
+        }
+        return location
     }
 
     function displayCurrentWins(){
@@ -161,12 +192,5 @@ let GameBoard = (function() {
             return true;
         }
         return false;
-    }
-
-    //initalize
-    init();
-
-    return {
-        addPiece: addPiece,
     }
 })();
