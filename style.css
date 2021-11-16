@@ -1,0 +1,37 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameBoard {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-template-rows: auto auto auto;
+}
+
+.grid {
+    border: 1px solid black;
+    box-sizing: border-box;
+    width: 6rem;
+    height: 6rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4rem;
+}
+
+#grid0, #grid2, #grid6, #grid8 {
+    border: none;
+}
+
+#grid3, #grid5 {
+    border-left: none;
+    border-right: none;
+}
+
+#grid1, #grid7 {
+    border-top: none;
+    border-bottom: none;
+}
