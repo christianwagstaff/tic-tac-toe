@@ -121,23 +121,22 @@ let GameBoard = (function() {
         } else {
             return;
         }
-        checkForWin();
+        if (checkForWin(gameBoardArray)) {
+            win();
+        } else if (count === 9) {
+            tie();
+        }
         render();
         if (checkForComputer()) {
             computerPlay();
         };
     }
 
-    function checkForWin() {
+    function checkForWin(array) {
         for (option of winningPositions) {
-            if (areEqual(option)) {
-                win();
-                return;
+            if (areEqual(array, option)) {
+                return true;
             }
-        }
-        if (!gameBoardArray.includes('')) {
-            alert('Tie!')
-            resetBoard();
         }
     }
 
@@ -147,6 +146,13 @@ let GameBoard = (function() {
         currentPlayer.wins += 1;
         displayCurrentWins();
         resetBoard();
+    }
+
+    function tie() {
+        if (!gameBoardArray.includes('')) {
+            alert('Tie!')
+            resetBoard();
+        }
     }
 
     function checkForComputer() {
@@ -165,9 +171,35 @@ let GameBoard = (function() {
     }
 
     function findEmptySpace() {
-        let location = Math.floor(Math.random() * gameBoardArray.length);
-        while (gameBoardArray[location] !== '') {
-            location = Math.floor(Math.random() * gameBoardArray.length);
+        let openSpaces = gameBoardArray.reduce(function(accumArray,currentVal,index){
+            if (currentVal==='')
+                accumArray.push(index)
+            return accumArray;
+        }, []);
+        function getRandom(len) {
+            return Math.floor(Math.random() * len - 1) + 1
+        };
+        function getRandomSample(array) {
+            //randomly choose a space from the available spaces;
+            let length = array.length;
+            let index = getRandom(length);
+            return array[index];
+        }
+        function checkForComputerWin() {
+            let currentIcon = getCurrentPlayer(count).icon;
+            for (let space of openSpaces) {
+                let tempArray = gameBoardArray.map(x=>x);
+                tempArray[space] = currentIcon;
+                if (checkForWin(tempArray)) {
+                    return space;
+                }
+            }
+        }
+        let location;
+        if (checkForComputerWin()) {
+            location = checkForComputerWin();
+        } else {
+            location = getRandomSample(openSpaces);
         }
         return location
     }
@@ -184,10 +216,10 @@ let GameBoard = (function() {
     }
 
     //check all winning combinations to see if there is 3 in a row
-    function areEqual(array) {
-        let argument1 = gameBoardArray[array[0]];
-        let argument2 = gameBoardArray[array[1]];
-        let argument3 = gameBoardArray[array[2]];
+    function areEqual(mainArray, array) {
+        let argument1 = mainArray[array[0]];
+        let argument2 = mainArray[array[1]];
+        let argument3 = mainArray[array[2]];
         if (argument1 !== '' && argument1 === argument2 && argument1=== argument3) {
             return true;
         }
