@@ -3,11 +3,35 @@ h2 {
     margin: 0;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 body {
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+footer {
+    background-color: aliceblue;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+}
+
+footer a {
+    padding: 6px;
+}
+
+footer p {
+    text-align: center;
 }
 
 #gameBoard {
@@ -25,6 +49,11 @@ body {
     justify-content: center;
     align-items: center;
     font-size: 4rem;
+}
+
+.grid:hover {
+    background-color: rgb(240, 240, 240);
+    box-shadow: 1px 0px 2px black;
 }
 
 #grid0, #grid2, #grid6, #grid8 {
@@ -67,4 +96,47 @@ body {
     width: 100%;
     text-align: center;
     padding: 6px;
+}
+.gameArea {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reset {
+    align-self: center;
+    padding: 12px;
+}
+
+.popup {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 10rem;
+    width: 250px;
+    height: 150px;
+    background-color: aliceblue;
+    border: 1px solid black;
+    z-index: 10;
+    box-shadow: 2px 2px 5px grey;
+    padding: 12px;
+}
+
+.popup button {
+    padding: 6px 12px;
+}
+
+.popup h2 {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup .buttons {
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
 }

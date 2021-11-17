@@ -4,7 +4,8 @@ let GameBoard = (function() {
     //                      top,     left,    right,    bottom, diag1,   diag2    mid-col  mid-row
     let winningPositions = [[0,1,2], [0,3,6], [2,5,8], [6,7,8], [0,4,8], [2,4,6], [1,4,7], [3,4,5]];
     let count = 0;
-    let disablePlay = false;
+    let disablePlay = false; //stops the board if someone won
+    let computerPlaying = false; //stops the board if computer is playing
 
     //create players with unique icons
     function Player() {
@@ -17,32 +18,26 @@ let GameBoard = (function() {
     player1.icon = 'x'
 
     let player2 = new Player();
-    player2.name = 'Computer';
+    player2.name = 'Player 2';
     player2.icon = 'o';
     player2.computer = true;
 
-    function getCurrentPlayer(count) {
-        return count % 2 === 0 ? player1 : player2;
-    }
-
     //cache DOM
     let gameBoard = document.querySelector('#gameBoard');
-    let player1Display = document.querySelector('#player1');
-    let player2Display = document.querySelector('#player2');
-    let player1Name = player1Display.querySelector('.name');
-    let player2Name = player2Display.querySelector('.name');
-    let player1Score = player1Display.querySelector('.score');
-    let player2Score = player2Display.querySelector('.score');
+    let resetBtn = document.querySelector('.reset');
 
     //initialize Game when Loaded
     (function init() {
-        player1Name.textContent = player1.name;
-        player2Name.textContent = player2.name;
+        render();
         render();
     })();
 
     //add eventListeners
     gameBoard.addEventListener('click', addPiece);
+    resetBtn.addEventListener('click', resetBoard)
+
+    //bind events
+    events.on('updateNames', updatePlayerNames);
 
     //create the Board
     function createGridPiece() {
@@ -65,24 +60,17 @@ let GameBoard = (function() {
     function render() {
         removeAllChildren(gameBoard);
         createGrid();
-        currentPlayerCSS();
+        events.emit('currentPlayer', getCurrentPlayer(count))
+    }
+
+    function getCurrentPlayer(count) {
+        return count % 2 === 0 ? player1 : player2;
     }
 
     //remove old board from gameBoard
     function removeAllChildren(parent) {
         while (parent.firstChild) {
             parent.lastChild.remove();
-        }
-    }
-
-    //toggle currentPlayer CSS class
-    function currentPlayerCSS() {
-        if (getCurrentPlayer(count) === player1) {
-            player1Name.classList.add('currentPlayer');
-            player2Name.classList.remove('currentPlayer');
-        } else {
-            player2Name.classList.add('currentPlayer');
-            player1Name.classList.remove('currentPlayer');
         }
     }
 
@@ -94,6 +82,12 @@ let GameBoard = (function() {
                 return true;
             }
         }
+    }
+
+    function updatePlayerNames([p1Name, p2Name]) {
+        console.log(p1Name);
+        player1.name = p1Name;
+        player2.name = p2Name;
     }
 
     function updateGameArray(gridID) {
@@ -142,29 +136,31 @@ let GameBoard = (function() {
 
     function win() {
         let currentPlayer = getCurrentPlayer(count - 1);
-        alert(`Game Over ${currentPlayer.name} wins!`);
+        // alert(`Game Over ${currentPlayer.name} wins!`);
         currentPlayer.wins += 1;
-        displayCurrentWins();
-        resetBoard();
+        events.emit('currentScore', [player1.wins, player2.wins]);
+        disablePlay = true;
+        events.emit('endGame', currentPlayer)
     }
 
     function tie() {
         if (!gameBoardArray.includes('')) {
-            alert('Tie!')
-            resetBoard();
+            events.emit('endGame', 'Tie');
         }
     }
 
     function checkForComputer() {
-        if (gameBoardArray.includes('') && getCurrentPlayer(count).computer) {
+        if (gameBoardArray.includes('') && getCurrentPlayer(count).computer && !disablePlay) {
             return true;
         }
     }
 
     function computerPlay() {
         disablePlay = true;
+        computerPlaying = true;
         setTimeout(function(){
             disablePlay = false;
+            computerPlaying = false;
             let location = findEmptySpace();
             addPiece(location);
         }, 500) //delay computer
@@ -187,32 +183,43 @@ let GameBoard = (function() {
         }
         function checkForComputerWin() {
             let currentIcon = getCurrentPlayer(count).icon;
+            return attemptWin(currentIcon);
+        }
+
+        function checkForUserWin() {
+            let currentIcon = getCurrentPlayer(count).icon;
+            let userIcon = currentIcon === 'x' ? 'o' : 'x';
+            return attemptWin(userIcon);
+        }
+
+        function attemptWin(icon) {
             for (let space of openSpaces) {
                 let tempArray = gameBoardArray.map(x=>x);
-                tempArray[space] = currentIcon;
+                tempArray[space] = icon;
                 if (checkForWin(tempArray)) {
                     return space;
                 }
             }
         }
+
         let location;
         if (checkForComputerWin()) {
             location = checkForComputerWin();
+        } else if (checkForUserWin()) {
+            location = checkForUserWin();
         } else {
             location = getRandomSample(openSpaces);
         }
         return location
     }
 
-    function displayCurrentWins(){
-        player1Score.textContent = player1.wins;
-        player2Score.textContent = player2.wins;
-    }
-
     function resetBoard() {
+        if (computerPlaying) return;//disallow reset button from firing if computer is playing
         gameBoardArray = Array(9).fill('');
         count = 0;
         render();
+        computerPlaying = false;
+        disablePlay = false;
     }
 
     //check all winning combinations to see if there is 3 in a row
@@ -225,4 +232,86 @@ let GameBoard = (function() {
         }
         return false;
     }
+
+    return {
+        player1: player1,
+        player2: player2,
+        resetBoard: resetBoard,
+    }
+
+})();
+
+(function UpdateUI() {
+    //cache DOM
+    let player1Display = document.querySelector('#player1');
+    let player2Display = document.querySelector('#player2');
+    let player1Name = player1Display.querySelector('.name');
+    let player2Name = player2Display.querySelector('.name');
+    let player1Score = player1Display.querySelector('.score');
+    let player2Score = player2Display.querySelector('.score');
+    let popup = document.querySelector('.popup');
+    let popupWinner = popup.querySelector('#endGamePopup');
+    let resetPopupBtn = popup.querySelector('#resetPopup');
+    let closePopupBtn = popup.querySelector('#closePopup');
+
+    //bind events
+    events.on('currentPlayer', currentPlayerCSS)
+    events.on('currentScore', updatePlayerScores)
+    events.on('endGame', endGame)
+
+
+    //add event listeners
+    player1Name.addEventListener('click', updateName);
+    player2Name.addEventListener('click', updateName);
+    closePopupBtn.addEventListener('click', closePopup);
+    resetPopupBtn.addEventListener('click', resetGame);
+
+    function updateName(e) {
+        let newName = prompt('What do you want as a new name?')
+        if (newName == null) return;
+        if (newName === '' || newName === ' ' ) return;
+        e.target.textContent = newName;
+        console.log('emitting')
+        events.emit('updateNames', [player1Name.textContent, player2Name.textContent]);
+    }
+
+    function updatePlayerScores([p1score, p2score]) {
+        player1Score.textContent = p1score;
+        player2Score.textContent = p2score;
+    }
+
+     //toggle currentPlayer CSS class
+     function currentPlayerCSS(currentPlayer) {
+        if (currentPlayer === GameBoard.player1) {
+            player1Name.classList.add('currentPlayer');
+            player2Name.classList.remove('currentPlayer');
+        } else {
+            player2Name.classList.add('currentPlayer');
+            player1Name.classList.remove('currentPlayer');
+        }
+    }
+
+    function endGame(winner) {
+        openPopup()
+        if (winner === 'Tie') {
+            popupWinner.textContent = "Tie!"
+        } else {
+            popupWinner.textContent = `${winner.name} Wins!`
+        }
+
+    }
+
+    function openPopup() {
+        popup.style.display = 'flex';
+    }
+
+    function closePopup() {
+        popup.style.display = 'none';
+    }
+
+    function resetGame() {
+        closePopup();
+        GameBoard.resetBoard();
+    }
+
 })();

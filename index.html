@@ -5,8 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic-Tac-Toe</title>
-    <script src='tictactoe.js' defer></script>
     <link rel='stylesheet' href='style.css'>
+    <script src='pubsub.js' defer></script>
+    <script src='tictactoe.js' defer></script>
 </head>
 <body>
     <h1>Tic Tac Toe</h1>
@@ -15,10 +16,24 @@
             <h2 class='rounded name'>Player 1</h2>
             <p class='score'>0</p>
         </div>
-        <div id="gameBoard"></div>
+        <div class="gameArea">
+            <div id="gameBoard"></div>
+            <button class="reset rounded">Reset Game</button>
+        </div>
         <div id="player2" class='rounded player'>
             <h2 class='name rounded'>Player 2</h2>
             <p class="score">0</p>
+        </div>
+    </div>
+    <footer>
+        <p>Made By Christian Wagstaff</p><a href="https://github.com/christianwagstaff"><img src="https://img.icons8.com/material-outlined/24/000000/github.png"/></a>
+    </footer>
+
+    <div class="popup rounded">
+        <h2 id='endGamePopup'>Winner!</h2>
+        <div class="buttons">
+            <button class='rounded' id='closePopup'>Close</button>
+            <button class='rounded' id='resetPopup'>Reset</button>
         </div>
     </div>
 </body>
